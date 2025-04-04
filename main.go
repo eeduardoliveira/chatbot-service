@@ -28,7 +28,6 @@ func main() {
 		log.Fatal("Erro ao conectar com o banco:", err)
 	}
 
-	http.HandleFunc("/chat", handlers.ChatHandler)
 	http.HandleFunc("/atendimento", handlers.AtendimentoHandler)
 	http.HandleFunc("/swagger/", httpSwagger.WrapHandler)
 	port := os.Getenv("PORT")

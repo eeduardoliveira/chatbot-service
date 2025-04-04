@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"chatbot-service/openai"
+	"chatbot-service/service"
 )
 
 type AtendimentoRequest struct {
@@ -28,7 +28,7 @@ type AtendimentoResponse struct {
 // @Router /atendimento [post]
 func AtendimentoHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*") // útil se rodar em outro domínio
+	w.Header().Set("Access-Control-Allow-Origin", "*") 
 
 	if r.Method != http.MethodPost {
 		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
@@ -41,8 +41,8 @@ func AtendimentoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := openai.PerguntarAoChatbot(req.Message)
-	if err != nil {
+	resp, err := service.AtendimentoIA(req.Message)
+		if err != nil {
 		http.Error(w, "Erro ao processar atendimento", http.StatusInternalServerError)
 		return
 	}

@@ -2,7 +2,7 @@ version: '3.8'
 services:
   postgres:
     image: postgres:latest
-    container_name: chatbot-image
+    container_name: chatbot-db
     restart: always
     environment:
       POSTGRES_USER: postgres
@@ -12,7 +12,34 @@ services:
       - "5432:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
-      # - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - chatnet
+
+  chatbot:
+    build: .
+    container_name: chatbot-service
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=chatbot
+    command: ["go", "run", "main.go"]
+    volumes:
+      - .:/app
+    working_dir: /app
+    networks:
+      - chatnet
 
 volumes:
   pg_data:
+
+networks:
+  chatnet:
+    driver: bridge
