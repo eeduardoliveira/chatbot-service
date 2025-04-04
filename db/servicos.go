@@ -1,9 +1,5 @@
 package db
 
-import (
-	"fmt"
-)
-
 type Servico struct {
 	Nome  string
 	Descricao string

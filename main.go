@@ -2,11 +2,9 @@ package main
 
 import (
 	"log"
-	"net/http"
-	"os"
-
-	"chatbot-service/handlers"
 	"github.com/joho/godotenv"
+	"chatbot-service/db"
+	"chatbot-service/service"
 )
 
 func main() {
@@ -14,14 +12,10 @@ func main() {
 	if err != nil {
 		log.Fatal("Erro ao carregar .env")
 	}
-
-	http.HandleFunc("/chat", handlers.ChatHandler)
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
+	err = db.Conectar()
+	if err != nil {
+		log.Fatal("Erro ao conectar com o banco:", err)
 	}
 
-	log.Printf("Servidor rodando em http://localhost:%s", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	services.AtendimentoIA()
 }

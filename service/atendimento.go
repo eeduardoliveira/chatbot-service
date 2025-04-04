@@ -5,6 +5,9 @@ import (
 	"chatbot-service/models"
 	"database/sql"
 	"fmt"
+	"chatbot-service/openai"
+	"bufio"
+	"os"
 )
 
 func AtenderCliente() {
@@ -37,4 +40,32 @@ func AtenderCliente() {
 	fmt.Printf("Email: %s\n", paciente.Email)
 	fmt.Printf("Nascimento: %s\n", paciente.Nascimento)
 	fmt.Println("--------------------------")
+}
+
+func AtendimentoIA() {
+	fmt.Println("Olá! Sou Ana, assistente virtual da Clínica Sorriso Ideal. Como posso te ajudar hoje?")
+	fmt.Println("(Digite 'sair' para encerrar o atendimento.)")
+
+	scanner := bufio.NewScanner(os.Stdin)
+	for {
+		fmt.Print("\n>> ")
+		if !scanner.Scan() {
+			fmt.Println("Erro ao ler entrada do usuário.")
+			break
+		}
+
+		entrada := scanner.Text()
+		if entrada == "sair" || entrada == "exit" {
+			fmt.Println("Foi um prazer te atender! Até logo.")
+			break
+		}
+
+		resposta, err := openai.PerguntarAoChatbot(entrada)
+		if err != nil {
+			fmt.Println("Erro ao consultar IA:", err)
+			continue
+		}
+
+		fmt.Println("\n🤖:", resposta)
+	}
 }
