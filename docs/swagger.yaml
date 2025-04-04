@@ -1,0 +1,53 @@
+basePath: /
+definitions:
+  handlers.AtendimentoRequest:
+    properties:
+      message:
+        type: string
+    type: object
+  handlers.AtendimentoResponse:
+    properties:
+      response:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: suporte@clinicasorriso.com
+    name: Suporte Técnico
+  description: API para integração com OpenAI e base de pacientes/serviços
+  title: Chatbot da Clínica Odontológica
+  version: "1.0"
+paths:
+  /atendimento:
+    post:
+      consumes:
+      - application/json
+      description: Recebe uma mensagem do usuário e responde com base na IA e nos
+        dados da clínica
+      parameters:
+      - description: Mensagem do usuário
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.AtendimentoRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.AtendimentoResponse'
+        "400":
+          description: Requisição inválida
+          schema:
+            type: string
+        "500":
+          description: Erro interno do servidor
+          schema:
+            type: string
+      summary: Atendimento inteligente com IA
+      tags:
+      - atendimento
+swagger: "2.0"
