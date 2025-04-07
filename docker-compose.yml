@@ -2,7 +2,7 @@ version: '3.8'
 services:
   postgres:
     image: postgres:latest
-    container_name: chatbot-db
+    container_name: postgres
     restart: always
     environment:
       POSTGRES_USER: postgres
@@ -17,7 +17,7 @@ services:
 
   chatbot:
     build: .
-    container_name: chatbot-service
+    container_name: golang-service
     restart: always
     ports:
       - "8080:8080"
@@ -37,8 +37,27 @@ services:
     networks:
       - chatnet
 
+  n8n:
+    image: n8nio/n8n
+    container_name: n8n
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      - GENERIC_TIMEZONE=America/Sao_Paulo
+      - N8N_BASIC_AUTH_ACTIVE=false
+      - DB_TYPE=sqlite
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - WEBHOOK_URL=http://localhost:5678
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - chatnet
+
 volumes:
   pg_data:
+  n8n_data:
 
 networks:
   chatnet:
