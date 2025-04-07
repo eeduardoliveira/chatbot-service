@@ -25,7 +25,7 @@ services:
       - postgres
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - DB_HOST=postgres
+      - DB_HOST=postgre7
       - DB_PORT=5432
       - DB_USER=postgres
       - DB_PASSWORD=postgres
