@@ -1,0 +1,64 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: chatbot
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - chatnet
+
+  chatbot:
+    build: .
+    container_name: golang-service
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DB_HOST=postgre7
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=chatbot
+    command: ["go", "run", "main.go"]
+    volumes:
+      - .:/app
+    working_dir: /app
+    networks:
+      - chatnet
+
+  n8n:
+    image: n8nio/n8n
+    container_name: n8n
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      - GENERIC_TIMEZONE=America/Sao_Paulo
+      - N8N_BASIC_AUTH_ACTIVE=false
+      - DB_TYPE=sqlite
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - WEBHOOK_URL=http://localhost:5678
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - chatnet
+
+volumes:
+  pg_data:
+  n8n_data:
+
+networks:
+  chatnet:
+    driver: bridge

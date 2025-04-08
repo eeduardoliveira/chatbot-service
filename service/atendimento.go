@@ -1,40 +1,44 @@
-package services
+package service
 
 import (
 	"chatbot-service/db"
-	"chatbot-service/models"
-	"database/sql"
+	"chatbot-service/openai"
 	"fmt"
 )
 
-func AtenderCliente() {
-	var entrada string
+var historico []openai.Message
 
-	fmt.Println("Olá, seja bem-vindo à clínica!")
-	fmt.Print("Por favor, informe seu CPF ou código de paciente: ")
-	fmt.Scanln(&entrada)
+func AtendimentoIA(prompt string) (string, error) {
 
-	var paciente models.Paciente
-	err := db.DB.QueryRow(`
-		SELECT id, nome, cpf, telefone, email, to_char(data_nascimento, 'DD/MM/YYYY')
-		FROM pacientes
-		WHERE cpf = $1 OR CAST(id AS TEXT) = $1`, entrada).
-		Scan(&paciente.ID, &paciente.Nome, &paciente.CPF, &paciente.Telefone, &paciente.Email, &paciente.Nascimento)
-
-	if err == sql.ErrNoRows {
-		fmt.Println("Paciente não encontrado.")
-		return
-	} else if err != nil {
-		fmt.Println("Erro ao buscar paciente:", err)
-		return
+	servicos, err := db.BuscarServicos()
+	if err != nil {
+		return  "", fmt.Errorf("Erro ao buscar serviços: %w", err)
 	}
-
-	fmt.Println("\n--- Dados do Paciente ---")
-	fmt.Printf("ID: %d\n", paciente.ID)
-	fmt.Printf("Nome: %s\n", paciente.Nome)
-	fmt.Printf("CPF: %s\n", paciente.CPF)
-	fmt.Printf("Telefone: %s\n", paciente.Telefone)
-	fmt.Printf("Email: %s\n", paciente.Email)
-	fmt.Printf("Nascimento: %s\n", paciente.Nascimento)
-	fmt.Println("--------------------------")
+	
+	descricaoServicos := "A clínica oferece os seguintes serviços:\n"
+	for _, s := range servicos {
+		descricaoServicos += fmt.Sprintf("- %s: %s — R$ %.2f\n", s.Nome, s.Descricao, s.Preco)
+	}
+	
+	systemPrompt := fmt.Sprintf(`Você é uma atendente virtual chamada Ana, da Clínica Sorriso Ideal.
+	Fale de forma simpática e acolhedora.
+	Evite ser prolixa, seja simpatica mas direta.
+	Converse de forma dinamica
+	Falas inglês e português
+	%s
+	
+	A clínica atende das 08h às 18h, de segunda a sábado.
+	
+	Você deve responder com base nessas informações. Se o paciente perguntar algo fora do escopo ou solicitar valores exatos e personalizados, oriente que será necessário entrar em contato com a recepção.`, descricaoServicos)
+	
+	
+	if len(historico) == 0 {
+		historico = append(historico, openai.Message{
+			Role:    "system",
+			Content: systemPrompt,
+		})
+	}
+	var resposta string
+	historico, resposta, err = openai.PerguntarAoChatbot(prompt, historico)
+	return resposta, err
 }
