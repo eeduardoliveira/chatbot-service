@@ -1,11 +1,13 @@
 basePath: /
 definitions:
-  handlers.AtendimentoRequest:
+  controller.ChatRequest:
     properties:
+      cliente_id:
+        type: string
       message:
         type: string
     type: object
-  handlers.AtendimentoResponse:
+  controller.ChatResponse:
     properties:
       response:
         type: string
@@ -13,32 +15,32 @@ definitions:
 host: localhost:8080
 info:
   contact:
-    email: suporte@clinicasorriso.com
-    name: Suporte Técnico
-  description: API para integração com OpenAI e base de pacientes/serviços
-  title: Chatbot da Clínica Odontológica
-  version: "1.0"
+    email: suporte@chatbotwhitelabel.com
+    name: Equipe Técnica
+  description: API para atendimento inteligente com IA e configuração via bucket
+  title: Chatbot
+  version: "2.0"
 paths:
   /atendimento:
     post:
       consumes:
       - application/json
-      description: Recebe uma mensagem do usuário e responde com base na IA e nos
-        dados da clínica
+      description: Recebe uma mensagem do usuário e responde com base na IA e no prompt
+        dinâmico do cliente
       parameters:
-      - description: Mensagem do usuário
+      - description: Mensagem do usuário com cliente_id
         in: body
         name: message
         required: true
         schema:
-          $ref: '#/definitions/handlers.AtendimentoRequest'
+          $ref: '#/definitions/controller.ChatRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.AtendimentoResponse'
+            $ref: '#/definitions/controller.ChatResponse'
         "400":
           description: Requisição inválida
           schema:

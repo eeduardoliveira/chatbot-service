@@ -10,8 +10,8 @@ const docTemplate = `{
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
         "contact": {
-            "name": "Suporte Técnico",
-            "email": "suporte@clinicasorriso.com"
+            "name": "Equipe Técnica",
+            "email": "suporte@chatbotwhitelabel.com"
         },
         "version": "{{.Version}}"
     },
@@ -20,7 +20,7 @@ const docTemplate = `{
     "paths": {
         "/atendimento": {
             "post": {
-                "description": "Recebe uma mensagem do usuário e responde com base na IA e nos dados da clínica",
+                "description": "Recebe uma mensagem do usuário e responde com base na IA e no prompt dinâmico do cliente",
                 "consumes": [
                     "application/json"
                 ],
@@ -33,12 +33,12 @@ const docTemplate = `{
                 "summary": "Atendimento inteligente com IA",
                 "parameters": [
                     {
-                        "description": "Mensagem do usuário",
+                        "description": "Mensagem do usuário com cliente_id",
                         "name": "message",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.AtendimentoRequest"
+                            "$ref": "#/definitions/controller.ChatRequest"
                         }
                     }
                 ],
@@ -46,7 +46,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.AtendimentoResponse"
+                            "$ref": "#/definitions/controller.ChatResponse"
                         }
                     },
                     "400": {
@@ -66,15 +66,18 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "handlers.AtendimentoRequest": {
+        "controller.ChatRequest": {
             "type": "object",
             "properties": {
+                "cliente_id": {
+                    "type": "string"
+                },
                 "message": {
                     "type": "string"
                 }
             }
         },
-        "handlers.AtendimentoResponse": {
+        "controller.ChatResponse": {
             "type": "object",
             "properties": {
                 "response": {
@@ -87,12 +90,12 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
+	Version:          "2.0",
 	Host:             "localhost:8080",
 	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "Chatbot da Clínica Odontológica",
-	Description:      "API para integração com OpenAI e base de pacientes/serviços",
+	Title:            "Chatbot",
+	Description:      "API para atendimento inteligente com IA e configuração via bucket",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

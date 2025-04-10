@@ -2,6 +2,7 @@ package bucket
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -25,28 +26,58 @@ func NewHTTPBucket() *HTTPBucket {
 	}
 }
 
-func (b *HTTPBucket) GetFile(ctx context.Context, path string) ([]byte, error) {
-	url := fmt.Sprintf("%s/%s", b.BaseURL, path)
+func (b *HTTPBucket) GetFile(ctx context.Context, clienteID string) ([]byte, error) {
+	bucketSignerURL := os.Getenv("BUCKET_SIGNER_URL")
+	bucketName := os.Getenv("BUCKET_NAME")
 
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req, err := buildSignedURLRequest(ctx, bucketSignerURL, bucketName, clienteID)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao criar requisição GET para o bucket: %w", err)
+		return nil, fmt.Errorf("erro ao montar requisição para bucket-signer: %w", err)
 	}
 
 	resp, err := b.Client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao fazer requisição ao bucket: %w", err)
+		return nil, fmt.Errorf("erro ao fazer requisição ao bucket-signer: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("arquivo não encontrado no bucket: %s (status %d)", path, resp.StatusCode)
+		return nil, fmt.Errorf("erro do bucket-signer: status %d", resp.StatusCode)
 	}
 
-	body, err := io.ReadAll(resp.Body)
+	var result struct {
+		URL string `json:"url"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("erro ao decodificar resposta do bucket-signer: %w", err)
+	}
+
+	// Requisição para buscar o arquivo via presigned URL
+	fileReq, err := http.NewRequestWithContext(ctx, http.MethodGet, result.URL, nil)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao ler o corpo da resposta do bucket: %w", err)
+		return nil, fmt.Errorf("erro ao criar requisição GET do arquivo: %w", err)
+	}
+
+	fileResp, err := b.Client.Do(fileReq)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao buscar arquivo com URL assinada: %w", err)
+	}
+	defer fileResp.Body.Close()
+
+	if fileResp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("arquivo não encontrado no bucket: %s (status %d)", result.URL, fileResp.StatusCode)
+	}
+
+	body, err := io.ReadAll(fileResp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao ler o corpo do arquivo: %w", err)
 	}
 
 	return body, nil
+}
+
+func buildSignedURLRequest(ctx context.Context, signerBaseURL, bucketName, clienteID string) (*http.Request, error) {
+	reqURL := fmt.Sprintf("%s/signed-url?bucket=%s&clienteID=%s", signerBaseURL, bucketName, clienteID)
+	return http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
 }

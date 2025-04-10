@@ -1,35 +1,21 @@
 version: '3.8'
 services:
-  postgres:
-    image: postgres:latest
-    container_name: postgres
-    restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: chatbot
-    ports:
-      - "5432:5432"
-    volumes:
-      - pg_data:/var/lib/postgresql/data
-    networks:
-      - chatnet
-
   chatbot:
     build: .
     container_name: golang-service
     restart: always
     ports:
       - "8080:8080"
-    depends_on:
-      - postgres
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - DB_HOST=postgre7
-      - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_NAME=chatbot
+      - PORT=${PORT}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL}
+      - OPENAI_API_URL=${OPENAI_API_URL}
+      - BUCKET_BASE_URL=${BUCKET_BASE_URL}
+      - PROMPT_FILE_PATTERN=${PROMPT_FILE_PATTERN}
+      - BUCKET_SIGNER_URL=${BUCKET_SIGNER_URL}
+      - BUCKET_NAME=${BUCKET_NAME}
     command: ["go", "run", "main.go"]
     volumes:
       - .:/app

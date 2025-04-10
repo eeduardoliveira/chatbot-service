@@ -20,8 +20,7 @@ func NewBucketPromptRepository(bucket BucketService) *BucketPromptRepository {
 }
 
 func (r *BucketPromptRepository) GetPromptByClienteID(ctx context.Context, clienteID string) (*persona.Prompt, error) {
-	filename := fmt.Sprintf("%s-prompt.json", clienteID)
-	body, err := r.Bucket.GetFile(ctx, filename)
+	body, err := r.Bucket.GetFile(ctx, clienteID)
 	if err != nil {
 		return nil, err
 	}
