@@ -78,6 +78,6 @@ func (b *HTTPBucket) GetFile(ctx context.Context, clienteID string) ([]byte, err
 }
 
 func buildSignedURLRequest(ctx context.Context, signerBaseURL, bucketName, clienteID string) (*http.Request, error) {
-	reqURL := fmt.Sprintf("%s/signed-url?bucket=%s&clienteID=%s", signerBaseURL, bucketName, clienteID)
+	reqURL := fmt.Sprintf("%s/signed-url?bucket=%s&clienteID=%s&upload=false", signerBaseURL, bucketName, clienteID)
 	return http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
 }
