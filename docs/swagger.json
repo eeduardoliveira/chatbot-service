@@ -1,20 +1,20 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "API para integração com OpenAI e base de pacientes/serviços",
-        "title": "Chatbot da Clínica Odontológica",
+        "description": "API para atendimento inteligente com IA e configuração via bucket",
+        "title": "Chatbot",
         "contact": {
-            "name": "Suporte Técnico",
-            "email": "suporte@clinicasorriso.com"
+            "name": "Equipe Técnica",
+            "email": "suporte@chatbotwhitelabel.com"
         },
-        "version": "1.0"
+        "version": "2.0"
     },
     "host": "localhost:8080",
     "basePath": "/",
     "paths": {
         "/atendimento": {
             "post": {
-                "description": "Recebe uma mensagem do usuário e responde com base na IA e nos dados da clínica",
+                "description": "Recebe uma mensagem do usuário e responde com base na IA e no prompt dinâmico do cliente",
                 "consumes": [
                     "application/json"
                 ],
@@ -27,12 +27,12 @@
                 "summary": "Atendimento inteligente com IA",
                 "parameters": [
                     {
-                        "description": "Mensagem do usuário",
+                        "description": "Mensagem do usuário com cliente_id",
                         "name": "message",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.AtendimentoRequest"
+                            "$ref": "#/definitions/controller.ChatRequest"
                         }
                     }
                 ],
@@ -40,7 +40,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.AtendimentoResponse"
+                            "$ref": "#/definitions/controller.ChatResponse"
                         }
                     },
                     "400": {
@@ -60,15 +60,18 @@
         }
     },
     "definitions": {
-        "handlers.AtendimentoRequest": {
+        "controller.ChatRequest": {
             "type": "object",
             "properties": {
+                "cliente_id": {
+                    "type": "string"
+                },
                 "message": {
                     "type": "string"
                 }
             }
         },
-        "handlers.AtendimentoResponse": {
+        "controller.ChatResponse": {
             "type": "object",
             "properties": {
                 "response": {
