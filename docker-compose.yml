@@ -36,6 +36,7 @@ services:
       - N8N_HOST=localhost
       - N8N_PORT=5678
       - WEBHOOK_URL=http://localhost:5678
+      - IG_PAGE_TOKEN=EAAJDBs8LY5MBOwOtZBFImezFUYMOAngZAoRxmTZA7L68bnXAGbLmoZAbcf7Xk3HO7PPZAolL9tZC7ZAQ62tArSmTZCwJjc2pvkBflbSblk0xiVRN4Lwh46XLBqZCYZBBvOrziIXVEcD9xXqFsnXQYEe5HJhqWNL1932GRRrBgb2tWGjP9XGqMZBf1nlcrmpWd99FWLZBt8vUbKE6uWHPBsavCeff0xGIyoSfmzGbyb4schyoZAfIZD
     volumes:
       - n8n_data:/home/node/.n8n
     networks:
