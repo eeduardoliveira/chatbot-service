@@ -24,4 +24,4 @@ WORKDIR /root/
 # Copia binário da etapa de build
 COPY --from=builder /app/chatbot-service .
 
-CMD ["go", "run", "main.go"]
+CMD ["./chatbot-service"]
