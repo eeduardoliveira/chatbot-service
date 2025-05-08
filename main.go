@@ -23,10 +23,6 @@ import (
 // @contact.name Equipe Técnica
 // @contact.email suporte@chatbotwhitelabel.com
 func main() {
-	// Carrega variáveis do .env
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("Erro ao carregar .env")
-	}
 
 	// Injeção de dependências
 	bucketService := bucket.NewHTTPBucket()
