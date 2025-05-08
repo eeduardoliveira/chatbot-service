@@ -10,9 +10,6 @@ RUN go mod download
 
 COPY . .
 
-# Copia o .env para dentro do container
-COPY .env .env
-
 # Compila a aplicação para produção
 RUN go build -o chatbot-service ./main.go
 
