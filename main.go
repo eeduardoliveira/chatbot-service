@@ -10,7 +10,6 @@ import (
 	"chatbot-service/dependencies/openai"
 	"chatbot-service/presentation/controller"
 
-	"github.com/joho/godotenv"
 	"github.com/swaggo/http-swagger"
 	_ "chatbot-service/docs"
 )
