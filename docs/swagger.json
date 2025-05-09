@@ -5,11 +5,11 @@
         "title": "Chatbot",
         "contact": {
             "name": "Equipe Técnica",
-            "email": "suporte@chatbotwhitelabel.com"
+            "email": "sypher.infraestrutura@gmail.com"
         },
-        "version": "2.0"
+        "version": "2.0.5"
     },
-    "host": "localhost:8080",
+    "host": "https://chatbot.syphertech.com.br/",
     "basePath": "/",
     "paths": {
         "/atendimento": {

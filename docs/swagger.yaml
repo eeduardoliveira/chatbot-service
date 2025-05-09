@@ -12,14 +12,14 @@ definitions:
       response:
         type: string
     type: object
-host: localhost:8080
+host: https://chatbot.syphertech.com.br/
 info:
   contact:
-    email: suporte@chatbotwhitelabel.com
+    email: sypher.infraestrutura@gmail.com
     name: Equipe Técnica
   description: API para atendimento inteligente com IA e configuração via bucket
   title: Chatbot
-  version: "2.0"
+  version: 2.0.5
 paths:
   /atendimento:
     post:
