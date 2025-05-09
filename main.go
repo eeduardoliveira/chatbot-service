@@ -10,17 +10,19 @@ import (
 	"chatbot-service/dependencies/openai"
 	"chatbot-service/presentation/controller"
 
-	"github.com/swaggo/http-swagger"
 	_ "chatbot-service/docs"
+
+	"github.com/rs/cors"
+	"github.com/swaggo/http-swagger"
 )
 
-// @title Chatbot 
-// @version 2.0
+// @title Chatbot
+// @version 2.0.5
 // @description API para atendimento inteligente com IA e configuração via bucket
-// @host localhost:8080
+// @host https://chatbot.syphertech.com.br/
 // @BasePath /
 // @contact.name Equipe Técnica
-// @contact.email suporte@chatbotwhitelabel.com
+// @contact.email sypher.infraestrutura@gmail.com
 func main() {
 
 	// Injeção de dependências
@@ -40,6 +42,12 @@ func main() {
 		port = "8080"
 	}
 
-	log.Printf("Servidor rodando em http://localhost:%s", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	corsHandler := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type"},
+		AllowCredentials: true,
+	}).Handler(http.DefaultServeMux)
+
+	log.Fatal(http.ListenAndServe(":"+port, corsHandler))
 }
