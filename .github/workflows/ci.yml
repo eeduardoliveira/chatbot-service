@@ -56,8 +56,8 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd /opt/app/chatbot-service
-            sudo git config --global --add safe.directory /opt/app/chatbot-service
+            git config --global --add safe.directory /opt/app/chatbot-service
             git reset --hard
             git pull origin main
             docker pull ${{ secrets.DOCKER_USERNAME }}/chatbot-service:${{ needs.build.outputs.tag }}
-            docker compose up -d --build
+            docker compose up -d --build chatbot
