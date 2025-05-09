@@ -12,7 +12,7 @@ definitions:
       response:
         type: string
     type: object
-host: https://chatbot.syphertech.com.br
+host: chatbot.syphertech.com.br
 info:
   contact:
     email: sypher.infraestrutura@gmail.com

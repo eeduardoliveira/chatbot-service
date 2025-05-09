@@ -9,7 +9,7 @@
         },
         "version": "2.0.5"
     },
-    "host": "https://chatbot.syphertech.com.br",
+    "host": "chatbot.syphertech.com.br",
     "basePath": "/",
     "paths": {
         "/atendimento": {
