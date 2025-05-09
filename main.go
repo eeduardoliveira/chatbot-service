@@ -19,7 +19,7 @@ import (
 // @title Chatbot
 // @version 2.0.5
 // @description API para atendimento inteligente com IA e configuração via bucket
-// @host https://chatbot.syphertech.com.br/
+// @host https://chatbot.syphertech.com.br
 // @BasePath /
 // @contact.name Equipe Técnica
 // @contact.email sypher.infraestrutura@gmail.com
