@@ -60,4 +60,4 @@ jobs:
             git reset --hard
             git pull origin main
             docker pull ${{ secrets.DOCKER_USERNAME }}/chatbot-service:${{ needs.build.outputs.tag }}
-            docker compose up -d chatbot-service
+            docker compose up -d chatbot
