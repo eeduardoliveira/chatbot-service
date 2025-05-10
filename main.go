@@ -39,7 +39,7 @@ func main() {
 	// Porta
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		port = "8085"
 	}
 
 	corsHandler := cors.New(cors.Options{
