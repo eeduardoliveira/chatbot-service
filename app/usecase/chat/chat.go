@@ -123,14 +123,14 @@ func (uc *ChatUseCase) updateContext(ctx context.Context, sessionID string, chat
 
 func (uc *ChatUseCase) intentsBasicas() []string {
     return []string{
-        "Saudação",
+        "Saudacao",
         "Despedida",
-        "Perguntar preço",
-        "Agendar serviço",
+        "Perguntar preco",
+        "Agendar servico",
         "Dúvida geral",
-		"Reclamação",
+		"Reclamacaoo",
 		"Feedback",
-		"Promoção",
+		"Promocaoo",
 		"Cancelamento",
     }
 }
