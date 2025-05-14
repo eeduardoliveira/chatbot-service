@@ -6,6 +6,8 @@ definitions:
         type: string
       message:
         type: string
+      phone_number:
+        type: string
     type: object
   controller.ChatResponse:
     properties:
@@ -21,7 +23,7 @@ info:
   title: Chatbot
   version: 2.0.5
 paths:
-  /atendimento:
+  /api/v1/atendimento:
     post:
       consumes:
       - application/json

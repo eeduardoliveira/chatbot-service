@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"context"
 	"chatbot-service/app/usecase/chat"
 )
 
@@ -17,8 +16,9 @@ func NewChatController(useCase *chat.ChatUseCase) *ChatController {
 }
 
 type ChatRequest struct {
-	ClienteID string `json:"cliente_id"`
-	Message   string `json:"message"`
+	ClienteID   string `json:"cliente_id"`
+	Message     string `json:"message"`
+	PhoneNumber string `json:"phone_number"`
 }
 
 type ChatResponse struct {
@@ -35,7 +35,7 @@ type ChatResponse struct {
 // @Success 200 {object} ChatResponse
 // @Failure 400 {string} string "Requisição inválida"
 // @Failure 500 {string} string "Erro interno do servidor"
-// @Router /atendimento [post]
+// @Router /api/v1/atendimento [post]
 func (c *ChatController) Handle(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -46,13 +46,13 @@ func (c *ChatController) Handle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req ChatRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Message == "" || req.ClienteID == "" {
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Message == "" || req.ClienteID == "" || req.PhoneNumber == "" {
 		http.Error(w, "Requisição inválida", http.StatusBadRequest)
 		return
 	}
 
-	ctx := context.Background()
-	resp, err := c.UseCase.ProcessarMensagem(ctx, req.ClienteID, req.Message)
+	ctx := r.Context()
+	resp, err := c.UseCase.ProcessarMensagem(ctx, req.ClienteID, req.PhoneNumber, req.Message)
 	if err != nil {
 		log.Printf("Erro no atendimento IA: %v", err)
 		http.Error(w, "Erro ao processar atendimento", http.StatusInternalServerError)

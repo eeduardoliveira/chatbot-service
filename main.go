@@ -8,12 +8,14 @@ import (
 	"chatbot-service/app/usecase/chat"
 	"chatbot-service/dependencies/bucket"
 	"chatbot-service/dependencies/openai"
+	redisrepo "chatbot-service/dependencies/redis"
 	"chatbot-service/presentation/controller"
 
 	_ "chatbot-service/docs"
 
 	"github.com/rs/cors"
 	"github.com/swaggo/http-swagger"
+	"github.com/redis/go-redis/v9"
 )
 
 // @title Chatbot
@@ -29,11 +31,22 @@ func main() {
 	bucketService := bucket.NewHTTPBucket()
 	promptRepo := bucket.NewBucketPromptRepository(bucketService)
 	openaiClient := openai.NewClient()
-	chatUseCase := chat.NewChatUseCase(promptRepo, openaiClient)
+
+	// Configuração do Redis
+	redisAddr := os.Getenv("REDIS_URL")
+	if redisAddr == "" {
+		redisAddr = "localhost:6379"
+	}
+	redisClient := redis.NewClient(&redis.Options{
+		Addr: redisAddr,
+	})
+	sessionRepo := redisrepo.NewRedisSessionRepository(redisClient)
+	contextRepo := redisrepo.NewRedisContextRepository(redisClient)
+	chatUseCase := chat.NewChatUseCase(promptRepo, openaiClient, sessionRepo, contextRepo)
 	chatController := controller.NewChatController(chatUseCase)
 
 	// Configura endpoints
-	http.HandleFunc("/atendimento", chatController.Handle)
+	http.HandleFunc("/api/v1/atendimento", chatController.Handle)
 	http.HandleFunc("/swagger/", httpSwagger.WrapHandler)
 
 	// Porta
