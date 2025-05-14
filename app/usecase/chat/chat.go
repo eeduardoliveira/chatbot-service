@@ -5,43 +5,107 @@ import (
 	"fmt"
 
 	"chatbot-service/app/domain/persona"
+	redis_context "chatbot-service/app/domain/context"
+	 "chatbot-service/app/domain/session"
 	"chatbot-service/dependencies/openai"
 )
 
 type ChatUseCase struct {
 	PromptRepo    persona.PromptRepository
 	ChatbotClient openai.Client
+	SessionRepo   session.SessionRepository
+	ContextRepo   redis_context.ContextRepository
 }
 
-func NewChatUseCase(promptRepo persona.PromptRepository, chatbot openai.Client) *ChatUseCase {
+func NewChatUseCase(
+	promptRepo persona.PromptRepository,
+	chatbot openai.Client,
+	sessionRepo session.SessionRepository,
+	contextRepo redis_context.ContextRepository,
+) *ChatUseCase {
 	return &ChatUseCase{
 		PromptRepo:    promptRepo,
 		ChatbotClient: chatbot,
+		SessionRepo:   sessionRepo,
+		ContextRepo:   contextRepo,
 	}
 }
+func (uc *ChatUseCase) ProcessarMensagem(ctx context.Context, clienteID, phoneNumber, mensagem string) (string, error) {
+    sessionID, err := uc.getOrCreateSessionID(ctx, phoneNumber)
+    if err != nil {
+        return "", err
+    }
 
-func (uc *ChatUseCase) ProcessarMensagem(ctx context.Context, clienteID, mensagem string) (string, error) {
-	prompt, err := uc.PromptRepo.GetPromptByClienteID(ctx, clienteID)
-	if err != nil {
-		return "", fmt.Errorf("erro ao buscar prompt: %w", err)
-	}
+    chatCtx, err := uc.loadContext(ctx, sessionID)
+    if err != nil {
+        return "", err
+    }
 
-	descricaoServicos := fmt.Sprintf("%s oferece os seguintes serviços:\n", prompt.NomeEmpresa)
-	for _, s := range prompt.Servicos {
-		descricaoServicos += fmt.Sprintf("- %s: %s — R$ %.2f\n", s.Nome, s.Descricao, s.Preco)
-	}
+    systemPrompt, err := uc.buildSystemPrompt(ctx, clienteID, chatCtx)
+    if err != nil {
+        return "", err
+    }
 
-	systemPrompt := fmt.Sprintf("%s\n\n%s", prompt.SystemPrompt, descricaoServicos)
+    mensagens := []openai.Message{
+        {Role: "system", Content: systemPrompt},
+        {Role: "user", Content: mensagem},
+    }
 
-	mensagens := []openai.Message{
-		{Role: "system", Content: systemPrompt},
-		{Role: "user", Content: mensagem},
-	}
+    resposta, err := uc.ChatbotClient.Chat(ctx, mensagens)
+    if err != nil {
+        return "", fmt.Errorf("erro ao consultar o chatbot: %w", err)
+    }
 
-	resposta, err := uc.ChatbotClient.Chat(ctx, mensagens)
-	if err != nil {
-		return "", fmt.Errorf("erro ao consultar o chatbot: %w", err)
-	}
+    err = uc.updateContext(ctx, sessionID, chatCtx, mensagem, resposta)
+    if err != nil {
+        return "", err
+    }
 
-	return resposta, nil
+    return resposta, nil
+}
+
+func (uc *ChatUseCase) getOrCreateSessionID(ctx context.Context, phoneNumber string) (string, error) {
+    sessionID, err := uc.SessionRepo.GetOrCreateSessionID(ctx, phoneNumber)
+    if err != nil {
+        return "", fmt.Errorf("erro ao buscar/criar sessionID: %w", err)
+    }
+    return sessionID, nil
+}
+
+func (uc *ChatUseCase) loadContext(ctx context.Context, sessionID string) (*redis_context.ChatContext, error) {
+    chatCtx, err := uc.ContextRepo.LoadContext(ctx, sessionID)
+    if err != nil {
+        return nil, fmt.Errorf("erro ao buscar contexto: %w", err)
+    }
+    return &chatCtx, nil
+}
+
+func (uc *ChatUseCase) buildSystemPrompt(ctx context.Context, clienteID string, chatCtx *redis_context.ChatContext) (string, error) {
+    prompt, err := uc.PromptRepo.GetPromptByClienteID(ctx, clienteID)
+    if err != nil {
+        return "", fmt.Errorf("erro ao buscar prompt: %w", err)
+    }
+
+    descricaoServicos := fmt.Sprintf("%s oferece os seguintes serviços:\n", prompt.NomeEmpresa)
+    for _, s := range prompt.Servicos {
+        descricaoServicos += fmt.Sprintf("- %s: %s — R$ %.2f\n", s.Nome, s.Descricao, s.Preco)
+    }
+
+    historico := ""
+    for _, h := range chatCtx.History {
+        historico += fmt.Sprintf("%s\n", h)
+    }
+
+    return fmt.Sprintf("%s\n\n%s\n\nHistórico recente:\n%s", prompt.SystemPrompt, descricaoServicos, historico), nil
+}
+
+func (uc *ChatUseCase) updateContext(ctx context.Context, sessionID string, chatCtx *redis_context.ChatContext, mensagem, resposta string) error {
+    chatCtx.History = append(chatCtx.History, "Usuário: "+mensagem)
+    chatCtx.History = append(chatCtx.History, "Bot: "+resposta)
+
+    if len(chatCtx.History) > 10 {
+        chatCtx.History = chatCtx.History[len(chatCtx.History)-10:]
+    }
+
+    return uc.ContextRepo.SaveContext(ctx, sessionID, *chatCtx)
 }

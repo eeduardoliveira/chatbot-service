@@ -18,7 +18,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/atendimento": {
+        "/api/v1/atendimento": {
             "post": {
                 "description": "Recebe uma mensagem do usuário e responde com base na IA e no prompt dinâmico do cliente",
                 "consumes": [
@@ -73,6 +73,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "message": {
+                    "type": "string"
+                },
+                "phone_number": {
                     "type": "string"
                 }
             }
