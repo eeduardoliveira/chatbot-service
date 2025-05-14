@@ -36,6 +36,7 @@ func main() {
 	redisAddr := os.Getenv("REDIS_ADDR")
 	if redisAddr == "" {
 		panic("REDIS_ADDR não configurado")
+
 	}
 	redisClient := redis.NewClient(&redis.Options{
 		Addr: redisAddr,
