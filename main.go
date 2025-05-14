@@ -33,9 +33,9 @@ func main() {
 	openaiClient := openai.NewClient()
 
 	// Configuração do Redis
-	redisAddr := os.Getenv("REDIS_URL")
+	redisAddr := os.Getenv("REDIS_ADDR")
 	if redisAddr == "" {
-		redisAddr = "localhost:6379"
+		panic("REDIS_ADDR não configurado")
 	}
 	redisClient := redis.NewClient(&redis.Options{
 		Addr: redisAddr,
