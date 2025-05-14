@@ -32,6 +32,7 @@ func main() {
 	promptRepo := bucket.NewBucketPromptRepository(bucketService)
 	openaiClient := openai.NewClient()
 
+
 	// Configuração do Redis
 	redisAddr := os.Getenv("REDIS_ADDR")
 	if redisAddr == "" {

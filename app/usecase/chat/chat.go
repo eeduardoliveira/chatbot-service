@@ -3,10 +3,12 @@ package chat
 import (
 	"context"
 	"fmt"
+	"log"
+	"strings"
 
-	"chatbot-service/app/domain/persona"
 	redis_context "chatbot-service/app/domain/context"
-	 "chatbot-service/app/domain/session"
+	"chatbot-service/app/domain/persona"
+	"chatbot-service/app/domain/session"
 	"chatbot-service/dependencies/openai"
 )
 
@@ -30,6 +32,7 @@ func NewChatUseCase(
 		ContextRepo:   contextRepo,
 	}
 }
+
 func (uc *ChatUseCase) ProcessarMensagem(ctx context.Context, clienteID, phoneNumber, mensagem string) (string, error) {
     sessionID, err := uc.getOrCreateSessionID(ctx, phoneNumber)
     if err != nil {
@@ -56,7 +59,7 @@ func (uc *ChatUseCase) ProcessarMensagem(ctx context.Context, clienteID, phoneNu
         return "", fmt.Errorf("erro ao consultar o chatbot: %w", err)
     }
 
-    err = uc.updateContext(ctx, sessionID, chatCtx, mensagem, resposta)
+    err = uc.updateContext(ctx, sessionID, chatCtx, mensagem, resposta, phoneNumber)
     if err != nil {
         return "", err
     }
@@ -99,13 +102,67 @@ func (uc *ChatUseCase) buildSystemPrompt(ctx context.Context, clienteID string, 
     return fmt.Sprintf("%s\n\n%s\n\nHistórico recente:\n%s", prompt.SystemPrompt, descricaoServicos, historico), nil
 }
 
-func (uc *ChatUseCase) updateContext(ctx context.Context, sessionID string, chatCtx *redis_context.ChatContext, mensagem, resposta string) error {
+func (uc *ChatUseCase) updateContext(ctx context.Context, sessionID string, chatCtx *redis_context.ChatContext, mensagem, resposta, phoneNumber string) error {
     chatCtx.History = append(chatCtx.History, "Usuário: "+mensagem)
     chatCtx.History = append(chatCtx.History, "Bot: "+resposta)
 
     if len(chatCtx.History) > 10 {
         chatCtx.History = chatCtx.History[len(chatCtx.History)-10:]
     }
+	detectedIntent, err := uc.detectarIntentIA(ctx, mensagem, uc.intentsBasicas())
+	if err != nil {
+		log.Printf("Erro ao detectar intenção via IA, usando fallback: %v", err)
+		detectedIntent = "Outra"
+	}
+
+	chatCtx.LastIntent = detectedIntent
+	chatCtx.UserName = phoneNumber
 
     return uc.ContextRepo.SaveContext(ctx, sessionID, *chatCtx)
+}
+
+func (uc *ChatUseCase) intentsBasicas() []string {
+    return []string{
+        "Saudação",
+        "Despedida",
+        "Perguntar preço",
+        "Agendar serviço",
+        "Dúvida geral",
+		"Reclamação",
+		"Feedback",
+		"Promoção",
+		"Cancelamento",
+    }
+}
+
+
+func (uc *ChatUseCase) detectarIntentIA(ctx context.Context, mensagem string, intents []string) (string, error) {
+    listaIntents := ""
+    for _, intent := range intents {
+        listaIntents += fmt.Sprintf("- %s\n", intent)
+    }
+
+    prompt := fmt.Sprintf(`Analise a seguinte mensagem e classifique em uma das intenções abaixo:
+		%s
+		Responda apenas com a intenção exata da lista. Se não encontrar uma correspondência clara, responda "Outra".
+		Mensagem: "%s"`, listaIntents, mensagem)
+
+    mensagens := []openai.Message{
+        {Role: "system", Content: prompt},
+    }
+
+    resposta, err := uc.ChatbotClient.Chat(ctx, mensagens)
+    if err != nil {
+        return "", fmt.Errorf("erro ao detectar intenção via IA: %w", err)
+    }
+
+    resposta = strings.TrimSpace(resposta)
+
+    for _, intent := range intents {
+        if strings.EqualFold(resposta, intent) {
+            return intent, nil
+        }
+    }
+
+    return "Outra", nil
 }
