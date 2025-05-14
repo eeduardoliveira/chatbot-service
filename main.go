@@ -32,11 +32,12 @@ func main() {
 	promptRepo := bucket.NewBucketPromptRepository(bucketService)
 	openaiClient := openai.NewClient()
 
+
 	// Configuração do Redis
 	redisAddr := os.Getenv("REDIS_ADDR")
-	if redisAddr == "" {
-		panic("REDIS_ADDR não configurado")
-	}
+		if redisAddr == "" {
+			panic("REDIS_ADDR não configurado")
+		}
 	redisClient := redis.NewClient(&redis.Options{
 		Addr: redisAddr,
 	})
