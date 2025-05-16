@@ -99,7 +99,7 @@ func (uc *ChatUseCase) buildSystemPrompt(ctx context.Context, clienteID string, 
         historico += fmt.Sprintf("%s\n", h)
     }
 
-    instrucoesExtras := "\n\nIMPORTANTE: Responda sempre de forma breve, objetiva e com no máximo 3 a 4 linhas. Evite respostas longas, listas extensas ou explicações detalhadas, a não ser que o usuário peça claramente."
+    instrucoesExtras := "\n\nIMPORTANTE: Responda sempre de forma breve, objetiva, com emojis e com no máximo 3 a 4 linhas. Evite respostas longas, listas extensas ou explicações detalhadas, a não ser que o usuário peça claramente."
 
     return fmt.Sprintf("%s%s\n\n%s\n\nHistórico recente:\n%s", prompt.SystemPrompt, instrucoesExtras, descricaoServicos, historico), nil
 }
